@@ -56,6 +56,7 @@ public:
 				return (*iter);
 			}
 		}
+		return NULL;
 	}
 
 	bool isLoaded() {

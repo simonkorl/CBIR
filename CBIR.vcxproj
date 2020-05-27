@@ -151,6 +151,8 @@
   <ItemGroup>
     <ClInclude Include="PicInfo.h" />
     <ClInclude Include="PicPool.h" />
+    <ClInclude Include="PicRetriver.h" />
+    <ClInclude Include="Query.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

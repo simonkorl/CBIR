@@ -7,17 +7,9 @@
 #include <cmath>
 #include "PicInfo.h"
 #include "PicPool.h"
+#include "PicRetriver.h"
 using namespace std;
 using namespace cv;
-
-enum DistanceMethod {
-	LTWO,
-	HI,
-	BH
-};
-
-#define BIN_16 (16)
-#define BIN_128 (128)
 
 double m_L2(int *histP, int *histQ, int bins){
 	if(bins != 16 && bins != 128){
@@ -86,46 +78,13 @@ double m_Bh(double *histPd, double *histQd, int bins){
 }
 const char DATASET_RELA_DIR[] = "DataSet/";
 int main(){
+	
+	PicRetriver retriver(DATASET_RELA_DIR);
 	// Read images info from AllImage.txt
-	PicPool picPool(DATASET_RELA_DIR);
-	picPool.loadAllImageInfo("AllImages.txt");
-	cv::imshow("Find", picPool.findPic("arborgreens/Image01.jpg")->image);
-	//// Read query info from QueryImages.txt
-	//fin.open("QueryImages.txt");
-	//vector<string> querys;
-	//int tmpNum;
-	//while (!fin.eof()) {
-	//	string queryName;
-	//	fin >> queryName >> tmpNum >> tmpNum;
-	//	querys.push_back(queryName);
-	//}
+	retriver.loadPicPool("AllImages.txt");
+	// Read query info from QueryImages.txt
+	retriver.loadQueries("QueryImages.txt");
 
-	//// test to calculate Histogram of an BGR image
-	//Mat testImg = imread(DATASET_RELA_DIR + datas[0]->fileName);
-	//if (testImg.empty()) {
-	//	cerr << "fail to load image from " << datas[0]->fileName << endl;
-	//	return -1;
-	//}
-	//
-	//int histP[16] = { 0 }, histQ[16] = { 0 };
-	//int bins = 16;
-
-	//// test of three different distance functions
-	//Mat Q = imread(DATASET_RELA_DIR + datas[1]->fileName);
-	//if(Q.empty()){
-	//	cerr << "fail to load image from " << datas[1]->fileName << endl;
-	//}
-	//for (int i = 0; i < Q.rows; ++i) {
-	//	for (int j = 0; j < Q.cols; ++j) {
-	//		Pixel& pixel = Q.at<Pixel>(i, j);
-	//		int b = 0, g = 0, r = 0;
-	//		b = pixel.x / 256.0 * 2;
-	//		g = pixel.y / 256.0 * 4;
-	//		r = pixel.z / 256.0 * 2;
-	//		histQ[b * 8 + g * 2 + r]++;
-	//	}
-	//}
-	//
 	//double l2 = m_L2(histP, histQ, bins);
 	//double hi = m_HI(histP, histQ, bins);
 	//double histPd[16] = {0}, histQd[16] = {0};
@@ -164,6 +123,6 @@ int main(){
 	//printf("l2: %lf, hi: %lf, bn: %lf\n", l2, hi, bh);
 	
 	// wait for user
-	waitKey(0);
+	// waitKey(0);
 	return 0;
 }
