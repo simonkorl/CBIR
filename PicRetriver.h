@@ -52,11 +52,10 @@ public:
 	};
 	void getPrecision(Query* query,DistanceMethod method, int bins, std::string storeDirName);
 	std::vector<Query*> queries; // test only, should be private
-	bool isCorrect(std::string p, std::string q);
+	PicPool m_pool; // debug only, should be private
 private:
 	static double m_L2(const int* histP,const int* histQ, int bins);
 	static double m_HI(const int *histP,const int *histQ, int bins);
 	static double m_Bh(const double* histPd,const double* histQd, int bins);
-	//bool isCorrect(PicInfo* p, PicInfo* q);
-	PicPool m_pool;
+	bool isCorrect(std::string p, std::string q);
 };
