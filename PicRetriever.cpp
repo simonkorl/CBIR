@@ -45,9 +45,6 @@ int PicRetriever::loadQueries(std::string queryImages)
 	return queries.size();
 }
 
-/*
-@param storeDirName : should end with "/"
-*/
 double PicRetriever::retrieve(Query* query, DistanceMethod  method, int bins, std::string storeDirName){
 	double (*preFunction) (const int*,const int*, int) = NULL;
 	switch (method) {
@@ -66,6 +63,12 @@ double PicRetriever::retrieve(Query* query, DistanceMethod  method, int bins, st
 			}
 			return PicRetriever::m_Bh(histPd, histQd, bins);
 		};
+		break;
+	case COS:
+		preFunction = PicRetriever::m_cosine;
+		break;
+	case JM:
+		preFunction = PicRetriever::m_JM;
 		break;
 	default:
 		cerr << "In getPrecision: method error: " << method << endl;
@@ -129,11 +132,7 @@ double PicRetriever::retriveAll(DistanceMethod method, int bins, std::string sto
 	}
 	return tmpPreci /= queries.size();
 }
-/*
-Output query results into "res_overall.txt" in {dirName}
-@param dirName: should end with "/"
-@return the number of dumped queries or error code
-*/
+
 int PicRetriever::dumpQueries(std::string dirName){
 	std::ofstream fout(dirName + "res_overall.txt");
 	if (!fout.is_open()) {
@@ -233,4 +232,58 @@ double PicRetriever::m_Bh(const double* histPd,const double* histQd, int bins){
 			return -2;
 		}
 	}
+}
+
+double PicRetriever::m_cosine(const int* histP, const int* histQ, int bins)
+{
+	if (bins != 16 && bins != 128) {
+		cerr << "COS Error: bins = " << bins << ",but should be 16 or 128" << endl;
+		return -1;
+	}
+	else {
+		try {
+			double sum = 0, sumP = 0, sumQ = 0;
+			for (int i = 0; i < bins; ++i) {
+				sum += (double) histP[i] * histQ[i];
+				sumP += (double)histP[i] * histP[i];
+				sumQ += (double)histQ[i] * histQ[i];
+			}
+			return  - sum / (sqrt(sumP) * sqrt(sumQ));
+		}
+		catch (range_error) {
+			cerr << "COS Error: Try to read element out of range" << endl;
+			return -1;
+		}
+		catch (exception e) {
+			cerr << "COS Error: Error occurs in COS: " << e.what() << endl;
+			return -2;
+		}
+	}
+}
+double PicRetriever::m_JM(const int* histP, const int* histQ, int bins)
+{
+	if (bins != 16 && bins != 128) {
+		cerr << "JM Error: bins = " << bins << ",but should be 16 or 128" << endl;
+		return -1;
+	}
+	else {
+		try {
+			double sum = 0, sqrtP = 0, sqrtQ = 0;
+			for (int i = 0; i < bins; ++i) {
+				sqrtP = sqrt(histP[i]);
+				sqrtQ = sqrt(histQ[i]);
+				sum += (sqrtP - sqrtQ) * (sqrtP - sqrtQ);
+			}
+			return sqrt(sum);
+		}
+		catch (range_error) {
+			cerr << "JM Error: Try to read element out of range" << endl;
+			return -1;
+		}
+		catch (exception e) {
+			cerr << "JM Error: Error occurs in JM: " << e.what() << endl;
+			return -2;
+		}
+	}
+	return 0.0;
 }
