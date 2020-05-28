@@ -63,14 +63,6 @@ public:
 		return pool.size() > 0;
 	}
 
-	size_t size() {
-		return pool.size();
-	}
-
-	const PicInfo* operator [](int i) {
-		return pool[i];
-	}
-
 	~PicPool(){
 		// release image info resource
 		while (pool.size() > 0) {

@@ -143,7 +143,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="PicRetriver.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="AllImages.txt" />

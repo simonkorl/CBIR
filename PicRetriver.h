@@ -11,10 +11,7 @@ public:
 	int loadQueries(std::string queryImages) {
 		if (!m_pool.isLoaded()) return -1;
 		std::ifstream fin(queryImages);
-		if (!fin.is_open()) {
-			std::cerr << "Fail to open " << queryImages << std::endl;
-			return -1;
-		}
+		fin.open("QueryImages.txt");
 		PicInfo* tmpInfo = NULL;
 		Query* tmpQuery = NULL;
 		int junk = 0;
@@ -26,16 +23,13 @@ public:
 			if ((tmpInfo = m_pool.findPic(queryName)) != NULL) {
 				tmpQuery = new Query();
 				tmpQuery->picInfo = tmpInfo;
-				queries.push_back(tmpQuery);
 			}
 			else {
 				std::cerr << "Query: " << queryName << " is not valid (should be picture in the dataset" << std::endl;
-				fin.close();
 				return -1;
 			}
 		}
 		std::cout << "Loading queries finished" << std::endl;
-		fin.close();
 		return queries.size();
 	}
 	~PicRetriver(){
@@ -45,18 +39,17 @@ public:
 		}
 	}
 	//void getAllPrecision();
+	//void getPrecision(Query* query, DistanceMethod method, int bins, std::string storeDirName);
+private:
 	enum DistanceMethod {
 		LTWO,
 		HI,
 		BH
 	};
-	void getPrecision(Query* query,DistanceMethod method, int bins, std::string storeDirName);
-	std::vector<Query*> queries; // test only, should be private
-	bool isCorrect(std::string p, std::string q);
-private:
-	static double m_L2(const int* histP,const int* histQ, int bins);
-	static double m_HI(const int *histP,const int *histQ, int bins);
-	static double m_Bh(const double* histPd,const double* histQd, int bins);
+	//double m_L2(int* histP, int* histQ, int bins);
+	//double m_HI(int *histP, int *histQ, int bins);
+	//double m_Bh(double *histPd, double *histQd, int bins);
 	//bool isCorrect(PicInfo* p, PicInfo* q);
 	PicPool m_pool;
+	std::vector<Query*> queries;
 };
