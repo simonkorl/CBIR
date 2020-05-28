@@ -18,7 +18,7 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="PicRetriver.cpp">
+    <ClCompile Include="PicRetriever.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -40,7 +40,7 @@
     <ClInclude Include="Query.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="PicRetriver.h">
+    <ClInclude Include="PicRetriever.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

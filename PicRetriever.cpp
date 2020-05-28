@@ -1,4 +1,4 @@
-#include "PicRetriver.h"
+#include "PicRetriever.h"
 #include <exception>
 #include <string>
 using namespace std;
@@ -6,17 +6,56 @@ using namespace std;
 #define WIDTH (378) 
 #define HEIGHT (252)
 #define TOTALNUM ((double)(WIDTH * HEIGHT))
+
+int PicRetriever::loadQueries(std::string queryImages)
+{
+	if (!m_pool.isLoaded()) return -1;
+	// clear current queries
+	while (queries.size() > 0) {
+		delete queries.back();
+		queries.pop_back();
+	}
+
+	std::ifstream fin(queryImages);
+	if (!fin.is_open()) {
+		std::cerr << "Fail to open " << queryImages << std::endl;
+		return -1;
+	}
+	PicInfo* tmpInfo = NULL;
+	Query* tmpQuery = NULL;
+	int junk = 0;
+	std::cout << "Loading queries from " << queryImages << std::endl;
+	while (!fin.eof()) {
+		std::string queryName;
+		fin >> queryName >> junk >> junk;
+		if (queryName.size() == 0) break;
+		if ((tmpInfo = m_pool.findPic(queryName)) != NULL) {
+			tmpQuery = new Query();
+			tmpQuery->picInfo = tmpInfo;
+			queries.push_back(tmpQuery);
+		}
+		else {
+			std::cerr << "Query: " << queryName << " is not valid (should be picture in the dataset" << std::endl;
+			fin.close();
+			return -1;
+		}
+	}
+	std::cout << "Loading queries finished" << std::endl;
+	fin.close();
+	return queries.size();
+}
+
 /*
 @param storeDirName : should end with "/"
 */
-double PicRetriver::retrieve(Query* query, DistanceMethod  method, int bins, std::string storeDirName){
+double PicRetriever::retrieve(Query* query, DistanceMethod  method, int bins, std::string storeDirName){
 	double (*preFunction) (const int*,const int*, int) = NULL;
 	switch (method) {
 	case LTWO:
-		preFunction = PicRetriver::m_L2;
+		preFunction = PicRetriever::m_L2;
 		break;
 	case HI:
-		preFunction = PicRetriver::m_HI;
+		preFunction = PicRetriever::m_HI;
 		break;
 	case BH:
 		preFunction = [](const int* histP,const int* histQ, int bins)->double {
@@ -25,7 +64,7 @@ double PicRetriver::retrieve(Query* query, DistanceMethod  method, int bins, std
 				histPd[i] = histP[i] / TOTALNUM;
 				histQd[i] = histQ[i] / TOTALNUM;
 			}
-			return PicRetriver::m_Bh(histPd, histQd, bins);
+			return PicRetriever::m_Bh(histPd, histQd, bins);
 		};
 		break;
 	default:
@@ -35,19 +74,22 @@ double PicRetriver::retrieve(Query* query, DistanceMethod  method, int bins, std
 	// insert sort
 	double tmpPreci = 0;
 	query->clear();
-	auto iter = query->results.begin();
+	int insert_posl = 0, insert_posr = 0, center = 0;
 	for (int i = 0; i < m_pool.size(); ++i) {
 		tmpPreci = preFunction(
 			(bins == 16) ? query->picInfo->hist16 : query->picInfo->hist128,
 			(bins == 16) ? m_pool[i]->hist16 : m_pool[i]->hist128,
 			bins);
-		
-		for (iter = query->results.begin(); iter != query->results.end(); ++iter) {
-			if (iter->second > tmpPreci) {
-				break;
+		for (insert_posl = 0, insert_posr = query->results.size() - 1; insert_posl <= insert_posr;) {
+			center = (insert_posl + insert_posr) / 2;
+			if (tmpPreci < query->results[center].second) {
+				insert_posr = center - 1; 
+			}
+			else {
+				insert_posl = center + 1;
 			}
 		}
-		query->results.insert(iter, std::pair<const PicInfo*, double>(m_pool[i], tmpPreci));
+		query->results.insert(query->results.begin() + insert_posl, std::pair<const PicInfo*, double>(m_pool[i], tmpPreci));
 		if (query->results.size() > 30) {
 			query->results.pop_back();
 		}
@@ -79,7 +121,7 @@ double PicRetriver::retrieve(Query* query, DistanceMethod  method, int bins, std
 	
 	return query->precision;
 }
-double PicRetriver::retriveAll(DistanceMethod method, int bins, std::string storeDirName){
+double PicRetriever::retriveAll(DistanceMethod method, int bins, std::string storeDirName){
 	// apply retrieving to all queries
 	double tmpPreci = 0;
 	for (auto iter = queries.begin(); iter != queries.end(); ++iter) {
@@ -92,7 +134,7 @@ Output query results into "res_overall.txt" in {dirName}
 @param dirName: should end with "/"
 @return the number of dumped queries or error code
 */
-int PicRetriver::dumpQueries(std::string dirName){
+int PicRetriever::dumpQueries(std::string dirName){
 	std::ofstream fout(dirName + "res_overall.txt");
 	if (!fout.is_open()) {
 		std::cerr << "dumpQueries Error: fail to open" << dirName + "res_overall.txt" << std::endl;
@@ -116,10 +158,10 @@ int PicRetriver::dumpQueries(std::string dirName){
 	fout.close();
 	return queries.size();
 }
-bool PicRetriver::isCorrect(std::string p, std::string q){
+bool PicRetriever::isCorrect(std::string p, std::string q){
 	return p.substr(0, p.find('/')) == q.substr(0, q.find('/'));
 }
-double PicRetriver::m_L2(const int* histP, const int* histQ, int bins){
+double PicRetriever::m_L2(const int* histP, const int* histQ, int bins){
 	if (bins != 16 && bins != 128) {
 		cerr << "L2 Error: bins = " << bins << ",but should be 16 or 128" << endl;
 		return -1;
@@ -143,7 +185,7 @@ double PicRetriver::m_L2(const int* histP, const int* histQ, int bins){
 	}
 }
 
-double PicRetriver::m_HI(const int* histP,const int* histQ, int bins){
+double PicRetriever::m_HI(const int* histP,const int* histQ, int bins){
 	if (bins != 16 && bins != 128) {
 		cerr << "HI Error: bins = " << bins << ",but should be 16 or 128" << endl;
 		return -1;
@@ -169,7 +211,7 @@ double PicRetriver::m_HI(const int* histP,const int* histQ, int bins){
 /*
 input percentile histogram
 */
-double PicRetriver::m_Bh(const double* histPd,const double* histQd, int bins){
+double PicRetriever::m_Bh(const double* histPd,const double* histQd, int bins){
 	if (bins != 16 && bins != 128) {
 		cerr << "Bh Error: bins = " << bins << ",but should be 16 or 128" << endl;
 		return -1;
