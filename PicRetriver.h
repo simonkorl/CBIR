@@ -10,6 +10,12 @@ public:
 	}
 	int loadQueries(std::string queryImages) {
 		if (!m_pool.isLoaded()) return -1;
+		// clear current queries
+		while (queries.size() > 0) {
+			delete queries.back();
+			queries.pop_back();
+		}
+
 		std::ifstream fin(queryImages);
 		if (!fin.is_open()) {
 			std::cerr << "Fail to open " << queryImages << std::endl;
@@ -50,12 +56,14 @@ public:
 		HI,
 		BH
 	};
-	void getPrecision(Query* query,DistanceMethod method, int bins, std::string storeDirName);
-	std::vector<Query*> queries; // test only, should be private
-	PicPool m_pool; // debug only, should be private
+	double retrieve(Query* query, DistanceMethod method, int bins, std::string storeDirName);
+	double retriveAll(DistanceMethod method, int bins, std::string storeDirName);
+	int dumpQueries(std::string dirName);
 private:
 	static double m_L2(const int* histP,const int* histQ, int bins);
 	static double m_HI(const int *histP,const int *histQ, int bins);
 	static double m_Bh(const double* histPd,const double* histQd, int bins);
 	bool isCorrect(std::string p, std::string q);
+	PicPool m_pool;
+	std::vector<Query*> queries;
 };
