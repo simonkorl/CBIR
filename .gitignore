@@ -339,5 +339,7 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
-# user customize
+# user specified
 DataSet
+Test
+Result
