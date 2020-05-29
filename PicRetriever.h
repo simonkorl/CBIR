@@ -26,17 +26,21 @@ public:
 	/*
 		@param storeDirName : should end with "/"
 	*/
-	double retrieve(Query* query, DistanceMethod method, int bins, std::string storeDirName);
+	double retrieve(Query* query, DistanceMethod method, int bins);
 	/*
 		@param storeDirName : should end with "/"
 	*/
-	double retriveAll(DistanceMethod method, int bins, std::string storeDirName);
+	double retrieveAll(DistanceMethod method, int bins);
 	/*
-		Output query results into "res_overall.txt" in {dirName}
+		Output a query result in {dirName}
+	*/
+	int dumpQuery(Query* query, std::string dirName);
+	/*
+		Output all query results and "res_overall.txt" in {dirName}
 		@param dirName: should end with "/"
 		@return the number of dumped queries or error code
 	*/
-	int dumpQueries(std::string dirName);
+	int dumpAllQueries(std::string queryDirName, std::string overallDirName);
 	// debug only
 	Query* getTestQuery() {
 		return queries[0];

@@ -21,23 +21,18 @@ int main(){
 	retriever.loadQueries("QueryImages.txt");
 	vector<double> preciResults;
 	// Do all combinations queries
-	//for (int i = 0; i < 6; ++i) {
-	//	string dirName = "Result/" + to_string(i) + "/";
-	//	if (i < 3) {
-	//		// use BIN16
-	//		preciResults.push_back(retriever.retriveAll((PicRetriever::DistanceMethod)i, BIN_16, dirName));
-	//		retriever.dumpQueries(dirName);
-	//	}
-	//	else {
-	//		// use BIN128
-	//		preciResults.push_back(retriever.retriveAll((PicRetriever::DistanceMethod)(i - 3), BIN_128, dirName));
-	//		retriever.dumpQueries(dirName);
-	//	}
-	//}
-	// test new metrics
-	retriever.retrieve(retriever.getTestQuery(), PicRetriever::COS, 128, "Result/");
-	cout << retriever.getTestQuery()->precision << endl;
-	retriever.retrieve(retriever.getTestQuery(), PicRetriever::JM, 128, "Result/");
-	cout << retriever.getTestQuery()->precision << endl;
+	for (int i = 0; i < 10; ++i) {
+		string dirName = "Result/" + to_string(i) + "/";
+		if (i < 5) {
+			// use BIN16
+			preciResults.push_back(retriever.retrieveAll((PicRetriever::DistanceMethod)i, BIN_16));
+			retriever.dumpAllQueries(dirName, dirName);
+		}
+		else {
+			// use BIN128
+			preciResults.push_back(retriever.retrieveAll((PicRetriever::DistanceMethod)(i - 5), BIN_128));
+			retriever.dumpAllQueries(dirName, dirName);
+		}
+	}
 	return 0;
 }

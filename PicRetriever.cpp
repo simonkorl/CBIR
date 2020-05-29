@@ -7,8 +7,7 @@ using namespace std;
 #define HEIGHT (252)
 #define TOTALNUM ((double)(WIDTH * HEIGHT))
 
-int PicRetriever::loadQueries(std::string queryImages)
-{
+int PicRetriever::loadQueries(std::string queryImages){
 	if (!m_pool.isLoaded()) return -1;
 	// clear current queries
 	while (queries.size() > 0) {
@@ -45,7 +44,7 @@ int PicRetriever::loadQueries(std::string queryImages)
 	return queries.size();
 }
 
-double PicRetriever::retrieve(Query* query, DistanceMethod  method, int bins, std::string storeDirName){
+double PicRetriever::retrieve(Query* query, DistanceMethod  method, int bins){
 	double (*preFunction) (const int*,const int*, int) = NULL;
 	switch (method) {
 	case LTWO:
@@ -75,6 +74,7 @@ double PicRetriever::retrieve(Query* query, DistanceMethod  method, int bins, st
 		return -2;
 	}
 	// insert sort
+	cout << "Retrieving " << query->picInfo->fileName << "..."<<endl;
 	double tmpPreci = 0;
 	query->clear();
 	int insert_posl = 0, insert_posr = 0, center = 0;
@@ -97,46 +97,58 @@ double PicRetriever::retrieve(Query* query, DistanceMethod  method, int bins, st
 			query->results.pop_back();
 		}
 	}
-	// output
+	// calculate precision
 	tmpPreci = 0;
-	
-	string outputPath = "res_" + query->picInfo->fileName;
-	outputPath.replace(outputPath.find("/"), 1, "_");
-	outputPath.replace(outputPath.find("jpg"), 3, "txt");
-	
-	outputPath = storeDirName + outputPath;
-	
-	ofstream fout(outputPath);
-	if (!fout.is_open()) {
-		cerr << "In getPrecision: Fail to open " << outputPath << endl;
-		return -1;
-	}
 	for (int i = 0; i < 30; ++i) {
-		fout << query->results[i].first->fileName << " " << query->results[i].second << endl;
-		//cout << query->results[i].first->fileName << " " << query->results[i].second << endl; //debug
 		if (isCorrect(query->results[i].first->fileName, query->picInfo->fileName)) {
 			tmpPreci++;
 		}
 	}
 	query->precision = tmpPreci / 30.0;
 	//cout << "precision: " << query->precision << endl << endl; // debug
-	fout.close();
-	
 	return query->precision;
 }
-double PicRetriever::retriveAll(DistanceMethod method, int bins, std::string storeDirName){
+double PicRetriever::retrieveAll(DistanceMethod method, int bins){
 	// apply retrieving to all queries
 	double tmpPreci = 0;
+	int i = 1, total = queries.size();
 	for (auto iter = queries.begin(); iter != queries.end(); ++iter) {
-		tmpPreci += retrieve(*iter, method, bins, storeDirName);
+		printf("Retrieve all progress [%d/%d]: ", i, total);
+		tmpPreci += retrieve(*iter, method, bins);
+		i++;
 	}
+	cout << "Retrieve all finished!" << endl << endl;
 	return tmpPreci /= queries.size();
 }
 
-int PicRetriever::dumpQueries(std::string dirName){
-	std::ofstream fout(dirName + "res_overall.txt");
+int PicRetriever::dumpQuery(Query* query, std::string dirName)
+{
+	string outputPath = "res_" + query->picInfo->fileName;
+	outputPath.replace(outputPath.find("/"), 1, "_");
+	outputPath.replace(outputPath.find("jpg"), 3, "txt");
+
+	outputPath = dirName + outputPath;
+
+	ofstream fout(outputPath);
 	if (!fout.is_open()) {
-		std::cerr << "dumpQueries Error: fail to open" << dirName + "res_overall.txt" << std::endl;
+		cerr << "In dumpQuery: Fail to open " << outputPath << endl;
+		return -1;
+	}
+
+	for (int i = 0; i < 30; ++i) {
+		fout << query->results[i].first->fileName << " " << query->results[i].second << endl;
+		//cout << query->results[i].first->fileName << " " << query->results[i].second << endl; //debug
+	}
+	
+	fout.close();
+
+	return 1;
+}
+
+int PicRetriever::dumpAllQueries(std::string queryDirNmae, std::string overallDirName){
+	std::ofstream fout(overallDirName + "res_overall.txt");
+	if (!fout.is_open()) {
+		std::cerr << "dumpQueries Error: fail to open" << overallDirName + "res_overall.txt" << std::endl;
 		return -1;
 	}
 	if (queries.size() == 0) {
@@ -150,6 +162,7 @@ int PicRetriever::dumpQueries(std::string dirName){
 			fout.close();
 			return -2;
 		}
+		dumpQuery(*iter, queryDirNmae);
 		fout << (*iter)->picInfo->fileName << " " << (*iter)->precision << std::endl;
 		tmpPreci += (*iter)->precision;
 	}
