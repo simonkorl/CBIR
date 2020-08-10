@@ -1,3 +1,5 @@
 # Content Based Image Retrieval homework
 
-Homework 2 of Multimedia in THU
+Part of Homework 2 of Multimedia in THU
+
+Full implementation can be found in [simonkorl/CBIR-with-GUI](https://github.com/simonkorl/CBIR-with-GUI)
